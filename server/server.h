@@ -10,8 +10,10 @@
 #include <sys/select.h>
 #include <errno.h>
 #include <sys/types.h>
+#include <netinet/in.h>
 
-#define PORT 8016
+
+#define PORT 2026
 #define MAX_CLIENTS 20
 #define MAX_PARTIDAS 10
 #define BUFFER_SIZE 200
