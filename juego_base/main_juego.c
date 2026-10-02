@@ -23,8 +23,13 @@ int main(){
         tablero[x][y].soldados = 30;
         
         //Casilla inicial del jugador 2
-        x = numeroAleatorio();
-        y = numeroAleatorio();
+        while(1){
+            x = numeroAleatorio();
+            y = numeroAleatorio();
+            if(tablero[x][y].jugador == 0){ //Para no solapar las casillas iniciales
+                break;
+            }
+        }
         tablero[x][y].jugador = 2;
         tablero[x][y].soldados = 30;
 
