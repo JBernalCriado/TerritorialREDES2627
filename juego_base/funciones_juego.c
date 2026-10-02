@@ -1,9 +1,16 @@
 #include "funciones_juego.h"
+#include <string.h>
 
+/*Genera el numero aleatorio para las casillas iniciales
+  @return Numero aleatorio entre 0 y 4
+*/
 int numeroAleatorio(){
    return rand() % 5;
 }
 
+/*Muestra el tablero de juego con los jugadores y sus soldados
+  @param tablero Matriz del mapa de juego
+*/
 void mostrarTablero(struct Casilla tablero[5][5]){
     printf("\n");
     for(int i=-1 ; i<5 ; i++){
@@ -32,40 +39,33 @@ void mostrarTablero(struct Casilla tablero[5][5]){
     printf("\n");
 }
 
-void ataque(struct Casilla tablero[5][5], int jugador){
+/*
+  Funcion para realizar el ataque al otro jugador.
+  @param tablero Matriz del mapa de juego
+  @param jugador id del Jugador que realiza el ataque
+  @param comando Parametros de coordenadas y soldados a enviar
+  @return 1 si el ataque es válido, 0 en caso contrario
+*/
+int ataque(struct Casilla tablero[5][5], int jugador, const char comando[]){
     int enemigo = jugador == 1 ? 2 : 1;
     const char *color = jugador == 1 ? "31" : "34";
     int origen[2], destino[2], soldados;
-    char comando[20];
 
     printf("\n\033[1;%smAqui tienes tus casillas marcadas\033[1;0m\n", color);
-    mostrarTablero(tablero);
-    printf("\033[1;%smCoordenadas: \033[1;0m", color);
-    mostrarCasillasDominadas(tablero, jugador - 1);
 
-    limpiarBuffer();
-    while (1) {
-        printf("Escriba el comando de ataque, ej B4 A3 10 siendo origen destino soldados\n");
-        if (fgets(comando, sizeof(comando), stdin) == NULL) {
-            return;
-        }
-        strcpy(comando, quitarn(comando));
+    origen[0] = origen[1] = destino[0] = destino[1] = -1;
+    soldados = -1;
+    traductorCoordenadasC(comando, origen, destino, &soldados);
 
-        origen[0] = origen[1] = destino[0] = destino[1] = -1;
-        soldados = -1;
-        traductorCoordenadasC(comando, origen, destino, &soldados);
-
-        if (origen[0] < 0 || origen[0] >= 5 || origen[1] < 0 || origen[1] >= 5 ||
-            destino[0] < 0 || destino[0] >= 5 || destino[1] < 0 || destino[1] >= 5 ||
-            soldados <= 0 ||
-            tablero[origen[0]][origen[1]].jugador != jugador ||
-            soldados > tablero[origen[0]][origen[1]].soldados ||
-            tablero[destino[0]][destino[1]].jugador != enemigo ||
-            (abs(origen[0] - destino[0]) + abs(origen[1] - destino[1]) != 1)) {
-            printf("Ataque no permitido: debes atacar una casilla del enemigo adyacente con suficientes soldados.\n");
-            continue;
-        }
-        break;
+    if (origen[0] < 0 || origen[0] >= 5 || origen[1] < 0 || origen[1] >= 5 ||
+        destino[0] < 0 || destino[0] >= 5 || destino[1] < 0 || destino[1] >= 5 ||
+        soldados <= 0 ||
+        tablero[origen[0]][origen[1]].jugador != jugador ||
+        soldados > tablero[origen[0]][origen[1]].soldados ||
+        tablero[destino[0]][destino[1]].jugador != enemigo ||
+        (abs(origen[0] - destino[0]) + abs(origen[1] - destino[1]) != 1)) {
+        printf("Ataque no permitido: debes atacar una casilla del enemigo adyacente con suficientes soldados.\n");
+        return 0;
     }
 
     printf("Ataque permitido\n");
@@ -87,40 +87,32 @@ void ataque(struct Casilla tablero[5][5], int jugador){
         printf("Perdiste la batalla por la casilla, le dejaste %i soldados\n", tablero[destino[0]][destino[1]].soldados);
         tablero[destino[0]][destino[1]].soldados += soldados;
     }
+    return 1;
 }
 
-void reforzar(struct Casilla tablero[5][5], int jugador){
+/*Funcion para reforzar una de tus casillas con más soldados
+  @param tablero Matriz del mapa de juego
+  @param jugador id del Jugador que realiza la accion
+  @param comando Parametros de coordenadas y soldados a enviar
+  @return 1 si el refuerzo es válido, 0 en caso contrario
+*/
+int reforzar(struct Casilla tablero[5][5], int jugador, const char comando[]){
     int origen[2], destino[2], soldados;
-    char comando[20];
-
     char* color = jugador == 1 ? "\033[1;31m" : "\033[1;34m";
-    mostrarTablero(tablero);
-    printf("%sCoordenadas: \033[0m", color);
-    mostrarCasillasDominadas(tablero, jugador - 1);
 
-    limpiarBuffer();
-    while (1) {
-        printf("Escriba el comando de refuerzo, ej B4 A3 10 siendo origen destino soldados\n");
-        if (fgets(comando, sizeof(comando), stdin) == NULL) {
-            return;
-        }
-        strcpy(comando, quitarn(comando));
+    origen[0] = origen[1] = destino[0] = destino[1] = -1;
+    soldados = -1;
+    traductorCoordenadasC(comando, origen, destino, &soldados);
 
-        origen[0] = origen[1] = destino[0] = destino[1] = -1;
-        soldados = -1;
-        traductorCoordenadasC(comando, origen, destino, &soldados);
-
-        if (origen[0] < 0 || origen[0] >= 5 || origen[1] < 0 || origen[1] >= 5 ||
-            destino[0] < 0 || destino[0] >= 5 || destino[1] < 0 || destino[1] >= 5 ||
-            soldados <= 0 ||
-            tablero[origen[0]][origen[1]].jugador != jugador ||
-            tablero[destino[0]][destino[1]].jugador != jugador ||
-            soldados > tablero[origen[0]][origen[1]].soldados ||
-            abs(origen[0] - destino[0]) + abs(origen[1] - destino[1]) != 1) {
-            printf("Refuerzo no permitido: ambas casillas deben ser tuyas y adyacentes. Debes tener suficientes soldados en la casilla de origen.\n");
-            continue;
-        }
-        break;
+    if (origen[0] < 0 || origen[0] >= 5 || origen[1] < 0 || origen[1] >= 5 ||
+        destino[0] < 0 || destino[0] >= 5 || destino[1] < 0 || destino[1] >= 5 ||
+        soldados <= 0 ||
+        tablero[origen[0]][origen[1]].jugador != jugador ||
+        tablero[destino[0]][destino[1]].jugador != jugador ||
+        soldados > tablero[origen[0]][origen[1]].soldados ||
+        abs(origen[0] - destino[0]) + abs(origen[1] - destino[1]) != 1) {
+        printf("Refuerzo no permitido: ambas casillas deben ser tuyas y adyacentes. Debes tener suficientes soldados en la casilla de origen.\n");
+        return 0;
     }
 
     tablero[origen[0]][origen[1]].soldados -= soldados;
@@ -129,40 +121,32 @@ void reforzar(struct Casilla tablero[5][5], int jugador){
         tablero[origen[0]][origen[1]].jugador = 0;
     }
     printf("Refuerzo realizado: mandaste %i soldados\n", soldados);
+    return 1;
 }
 
-void conquista(struct Casilla tablero[5][5], int jugador){
+/*Funcion para conquistar una casilla vacia
+  @param tablero Matriz del mapa de juego
+  @param jugador id del Jugador que realiza la accion
+  @param comando Parametros de coordenadas y soldados a enviar
+  @return 1 si la conquista es válida, 0 en caso contrario
+*/
+int conquista(struct Casilla tablero[5][5], int jugador, const char comando[]){
     int origen[2], destino[2], soldados;
-    char comando[20];
-
     char* color = jugador == 1 ? "\033[1;31m" : "\033[1;34m";
-    mostrarTablero(tablero);
-    printf("%sCoordenadas: \033[0m", color);
-    mostrarCasillasDominadas(tablero, jugador - 1);
 
-    limpiarBuffer();
-    while (1) {
-        printf("Escriba el comando de conquista, ej B4 A3 10 siendo origen destino soldados. Debes tener suficientes soldados en la casilla de origen.\n");
-        if (fgets(comando, sizeof(comando), stdin) == NULL) {
-            return;
-        }
-        strcpy(comando, quitarn(comando));
+    origen[0] = origen[1] = destino[0] = destino[1] = -1;
+    soldados = -1;
+    traductorCoordenadasC(comando, origen, destino, &soldados);
 
-        origen[0] = origen[1] = destino[0] = destino[1] = -1;
-        soldados = -1;
-        traductorCoordenadasC(comando, origen, destino, &soldados);
-
-        if (origen[0] < 0 || origen[0] >= 5 || origen[1] < 0 || origen[1] >= 5 ||
-            destino[0] < 0 || destino[0] >= 5 || destino[1] < 0 || destino[1] >= 5 ||
-            soldados <= 0 ||
-            tablero[origen[0]][origen[1]].jugador != jugador ||
-            tablero[destino[0]][destino[1]].jugador != 0 ||
-            tablero[origen[0]][origen[1]].soldados < soldados ||
-            abs(origen[0] - destino[0]) + abs(origen[1] - destino[1]) != 1) {
-            printf("Conquista no permitida: debes mandar soldados de una casilla tuya a una vacia adyacente.\n");
-            continue;
-        }
-        break;
+    if (origen[0] < 0 || origen[0] >= 5 || origen[1] < 0 || origen[1] >= 5 ||
+        destino[0] < 0 || destino[0] >= 5 || destino[1] < 0 || destino[1] >= 5 ||
+        soldados <= 0 ||
+        tablero[origen[0]][origen[1]].jugador != jugador ||
+        tablero[destino[0]][destino[1]].jugador != 0 ||
+        tablero[origen[0]][origen[1]].soldados < soldados ||
+        abs(origen[0] - destino[0]) + abs(origen[1] - destino[1]) != 1) {
+        printf("Conquista no permitida: debes mandar soldados de una casilla tuya a una vacia adyacente.\n");
+        return 0;
     }
 
     tablero[destino[0]][destino[1]].jugador = jugador;
@@ -172,8 +156,13 @@ void conquista(struct Casilla tablero[5][5], int jugador){
         tablero[origen[0]][origen[1]].jugador = 0;
     }
     printf("Conquistaste la casilla y mandaste %i soldados\n", soldados);
+    return 1;
 }
 
+/*Muestra la lista de casillas dominadas por el jugador
+    @param tablero Matriz del mapa de juego
+    @param turno id del jugador actual
+*/
 void mostrarCasillasDominadas(struct Casilla tablero[5][5], int turno){
     for(int i=0 ; i<5 ; i++){
         for(int j=0 ; j<5 ; j++){
@@ -186,13 +175,23 @@ void mostrarCasillasDominadas(struct Casilla tablero[5][5], int turno){
     printf("\n");
 }
 
+/*Pasa las coordenadas del formato (x, y) a A0/A1/.../E4
+  @param x Coordenada x de la casilla
+  @param y Coordenada y de la casilla
+*/
 void traductorCoordenadasI(int x, int y){
     if(x >= 0 && x < 26 && y >= 0){
         printf("%c%d", 'A' + x, y);
     }
 }
 
-void traductorCoordenadasC(char coordenadas[20], int origen[2], int destino[2], int *soldados){
+/*Extrae las coordenadas de para que las entienda el programa y extrae la cantidad de soldados usados.
+  @param coordenadas Cadena de caracteres con las coordenadas y soldados
+  @param origen Array de dos enteros para almacenar las coordenadas (x, y) de origen
+  @param destino Array de dos enteros para almacenar las coordenadas (x, y) de destino
+  @param soldados Puntero a un entero para almacenar la cantidad de soldados
+*/
+void traductorCoordenadasC(const char coordenadas[], int origen[2], int destino[2], int *soldados){
     char columnaOrigen, columnaDestino;
     int filaOrigen, filaDestino;
     int n_soldados;
@@ -204,7 +203,6 @@ void traductorCoordenadasC(char coordenadas[20], int origen[2], int destino[2], 
     {
         columnaOrigen = (char)toupper((unsigned char)columnaOrigen);
         columnaDestino = (char)toupper((unsigned char)columnaDestino);
-        printf("(%d, %d) (%d, %d)\n", columnaOrigen - 'A', filaOrigen, columnaDestino - 'A', filaDestino);
         origen[0] = columnaOrigen - 'A';
         origen[1] = filaOrigen;
         destino[0] = columnaDestino - 'A';
@@ -217,6 +215,12 @@ void traductorCoordenadasC(char coordenadas[20], int origen[2], int destino[2], 
     }
 }
 
+/*Comprueba que la accion es posible para el jugador actual
+  @param tablero Matriz del mapa de juego
+  @param jugador id del Jugador que realiza la accion
+  @param accion id de la accion a realizar (1: atacar, 2: reforzar, 3: conquistar)
+  @return 1 si la accion es posible, 0 en caso contrario
+*/
 int accionPermitida(struct Casilla tablero[5][5], int jugador, int accion){
     int contrario = jugador == 1 ? 2 : 1;
 
@@ -243,6 +247,11 @@ int accionPermitida(struct Casilla tablero[5][5], int jugador, int accion){
     return 0;
 }
 
+/*Comprobacion de la condicion de victoria o fin del juego
+  @param tablero Matriz del mapa de juego
+  @param turno Numero de turnos jugados
+  @return 1 si hay un ganador o empate (fin de la partida), 0 en caso contrario
+*/
 int comprobarVictoria(struct Casilla tablero[5][5], int turno){
     int territoriosJugador1 = 0;
     int territoriosJugador2 = 0;
@@ -291,7 +300,10 @@ int comprobarVictoria(struct Casilla tablero[5][5], int turno){
     return 0;
 }
 
-
+/*Elimina el caracter del salto de linea al final de la cadena si existe
+  @param cadena Cadena de caracteres a modificar
+  @return Puntero a la cadena modificada
+*/
 char* quitarn(char* cadena){
 
     size_t longitud = strlen(cadena);
@@ -301,6 +313,8 @@ char* quitarn(char* cadena){
     return cadena;
 }
 
+/*Limpiar el buffer para evitar problemas en el fgetc
+*/
 void limpiarBuffer(){
     int c;
     while ((c = getchar()) != '\n' && c != EOF);
