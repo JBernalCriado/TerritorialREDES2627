@@ -21,6 +21,7 @@ int main(){
         int y = numeroAleatorio();
         tablero[x][y].jugador = 1;
         tablero[x][y].soldados = 30;
+        printf("x: %d, y: %d\n", x, y);
         
         //Casilla inicial del jugador 2
         while(1){
@@ -32,6 +33,7 @@ int main(){
         }
         tablero[x][y].jugador = 2;
         tablero[x][y].soldados = 30;
+        printf("x: %d, y: %d\n", x, y);
 
         //Variables de control
         int turno = 0;

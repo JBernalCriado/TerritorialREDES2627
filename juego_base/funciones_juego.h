@@ -6,7 +6,7 @@
 #include <ctype.h>
 
 #define MAX_CASILLAS 5
-#define MAX_TURNOS 20
+#define MAX_TURNOS 100
 
 struct Casilla{
     int jugador, soldados;

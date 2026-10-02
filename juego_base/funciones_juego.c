@@ -109,7 +109,7 @@ int ataque(struct Casilla tablero[5][5], int jugador, const char comando[]){
         tablero[destino[0]][destino[1]].jugador = 0;
     } 
     else{
-        printf("Perdiste la batalla por la casilla, le dejaste %i soldados\n", tablero[destino[0]][destino[1]].soldados);
+        printf("Perdiste la batalla por la casilla, perdiste %i soldados\n", soldados);
         tablero[destino[0]][destino[1]].soldados += soldados;
     }
     return 1;
@@ -235,7 +235,7 @@ void traductorCoordenadasC(const char coordenadas[], int origen[2], int destino[
         *soldados = n_soldados;
     }
     else {
-        printf("Formato invalido. Use: B4 A3\n");
+        printf("Formato invalido. Use: B4 A3 soldados\n");
         return;
     }
 }
@@ -291,7 +291,15 @@ int comprobarVictoria(struct Casilla tablero[5][5], int turno){
     }
 
     printf("\n\033[1;32mCasillas conquistadas: \033[1;31mjugador 1: %i \033[0m| \033[1;34mjugador 2: %i\033[0m\n",territoriosJugador1, territoriosJugador2);
-
+    
+    if(territoriosJugador1 == 25){
+        printf("Gana el jugador 1: ha conquistado todas las casillas.\n");
+        return 1;
+    }
+    if(territoriosJugador2 == 25){
+        printf("Gana el jugador 2: ha conquistado todas las casillas.\n");
+        return 1;
+    }
     if(territoriosJugador1 == 0 && territoriosJugador2 == 0){
         printf("Empate: ambos jugadores se han quedado sin casillas.\n");
         return 1;
@@ -302,14 +310,6 @@ int comprobarVictoria(struct Casilla tablero[5][5], int turno){
     }
     if(territoriosJugador2 == 0){
         printf("Gana el jugador 1: el jugador 2 se ha quedado sin casillas.\n");
-        return 1;
-    }
-    if(territoriosJugador1 == 25){
-        printf("Gana el jugador 1: ha conquistado todas las casillas.\n");
-        return 1;
-    }
-    if(territoriosJugador2 == 25){
-        printf("Gana el jugador 2: ha conquistado todas las casillas.\n");
         return 1;
     }
     if(turno >= MAX_TURNOS){
