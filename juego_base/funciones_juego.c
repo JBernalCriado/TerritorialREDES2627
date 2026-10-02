@@ -1,6 +1,12 @@
 #include "funciones_juego.h"
 #include <string.h>
-
+#define DEFAULT    "\x1B[0m"
+#define BG_GRAY    "\x1B[48;2;176;174;174m"
+#define BG_WHITE   "\x1B[47m"
+#define BG_RED     "\x1B[41m"
+#define BG_BLUE    "\x1B[44m"
+#define WHITE   "\x1B[37m"
+#define GRAY    "\x1B[38;2;176;174;174m"
 /*Genera el numero aleatorio para las casillas iniciales
   @return Numero aleatorio entre 0 y 4
 */
@@ -16,22 +22,41 @@ void mostrarTablero(struct Casilla tablero[5][5]){
     for(int i=-1 ; i<5 ; i++){
         for(int j=-1 ; j<5 ; j++){
             if(i == -1 && j == -1){
-                printf("        ");
+                printf("   ");
             }
             else if(i == -1){
-                printf(" |  %i  | ", i + j + 1);
+                printf("  %i ", i + j + 2);
             }
             else if(j == -1){
-                printf("%c         ", 'A' + i);
+                printf(" %c ", 'A' + i);
             }
             else if(tablero[i][j].jugador == 1){
-                printf("\033[1;31m(%i, %i)\033[1;0m   ", tablero[i][j].jugador, tablero[i][j].soldados);
+                if(tablero[i][j].soldados<10){printf("%s  %i %s",BG_RED, tablero[i][j].soldados,DEFAULT);}
+                if(tablero[i][j].soldados>=10){printf("%s %i %s",BG_RED, tablero[i][j].soldados,DEFAULT);}
+
             }
             else if(tablero[i][j].jugador == 2){
-                printf("\033[1;34m(%i, %i)\033[1;0m  ", tablero[i][j].jugador, tablero[i][j].soldados);
+                if(tablero[i][j].soldados<10){printf("%s  %i %s",BG_BLUE, tablero[i][j].soldados,DEFAULT);}
+                if(tablero[i][j].soldados>=10){printf("%s %i %s",BG_BLUE, tablero[i][j].soldados,DEFAULT);}
+
             }
             else{
-                printf("(%i, %i)   ", tablero[i][j].jugador, tablero[i][j].soldados);
+                if(i%2==0){
+                if(j%2!=0){
+                printf("%s%s(30)%s",WHITE, BG_WHITE,DEFAULT);
+                }
+                if(j%2==0){
+                printf("%s%s(30)%s",GRAY, BG_GRAY,DEFAULT);
+                }
+            }
+                if(i%2!=0){
+                if(j%2!=0){
+                printf("%s%s(30)%s",GRAY, BG_GRAY,DEFAULT);
+                }
+                if(j%2==0){
+                printf("%s%s(30)%s",WHITE, BG_WHITE,DEFAULT);
+                }
+            }
             }
         }
         printf("\n");
@@ -167,7 +192,7 @@ void mostrarCasillasDominadas(struct Casilla tablero[5][5], int turno){
     for(int i=0 ; i<5 ; i++){
         for(int j=0 ; j<5 ; j++){
             if(tablero[i][j].jugador == turno%2 + 1){
-                traductorCoordenadasI(i, j);
+                traductorCoordenadasI(i, j+1);
                 printf(" ");
             }
         }
@@ -204,9 +229,9 @@ void traductorCoordenadasC(const char coordenadas[], int origen[2], int destino[
         columnaOrigen = (char)toupper((unsigned char)columnaOrigen);
         columnaDestino = (char)toupper((unsigned char)columnaDestino);
         origen[0] = columnaOrigen - 'A';
-        origen[1] = filaOrigen;
+        origen[1] = filaOrigen-1;
         destino[0] = columnaDestino - 'A';
-        destino[1] = filaDestino;
+        destino[1] = filaDestino-1;
         *soldados = n_soldados;
     }
     else {
