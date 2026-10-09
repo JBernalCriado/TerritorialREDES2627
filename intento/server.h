@@ -13,28 +13,14 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include "funciones_juego.h"
-#define PORT 2026
-#define MAX_CLIENTS 10
-#define MAX_PARTIDAS 4
-
-#define BG_YELLOW  "\x1B[43m"
-#define BLACK   "\x1B[30m"
-#define DEFAULT    "\x1B[0m"
-#define BG_RED     "\x1B[41m"
-#define BG_GRAY    "\x1B[48;2;176;174;174m"
-#define BG_GREEN   "\x1B[42m"
-#define WHITE   "\x1B[37m"
-#define BG_WHITE   "\x1B[47m"
-#define BG_RED     "\x1B[41m"
-#define BG_BLUE    "\x1B[44m"
-#define GRAY    "\x1B[38;2;176;174;174m"
+#include "macros.h"
 
 
 
 struct User
 {
     char usuario[50];
-    char contraseña[50];
+    char contrasena[50];
 };
 
 
@@ -52,7 +38,7 @@ struct Cliente
     int socket;
     int registered;
     char usuario[50];
-    char contraseña[50];
+    char contrasena[50];
 };
 void listarClientes();
 /*
@@ -64,18 +50,28 @@ Funcion encargada de comprobar que los clientes estén en una partida
 */
 int agregarUsuarioPartida(int socketjugador);
 int agregarUsuario(char *username, char *password);
-int asignarUsuario(int socket, char *user);
 int buscarEntreUsuario(char *usuario, char *password);
-int buscarUsuario(char *parameter, int descriptor);
-int comprobarCliente(int socket);
-int comprobarNombre(char *nombre);
+int buscarUsuario(char parameter[50]);
+int comprobarNombre(char nombre[50]);
 int getIdPartidaJugador(int socket);
 int getIndiceJugador(struct Partida *p, int socket);
 void procesarSalida(int socket);
 void resetearPartida(struct Partida *p);
 
+//REMAKE
+
+
+
+int esCliente(char parametros[50]);
+int comprobarCliente(int socket);
+int esUsuario(char parametros[50]);
+int asignarUsuario(int socket, char parametros[50]);
+int comprobarClave(char parametros[50], char usuario_actual[50]);
+
+
 int introducirContra(int socket, char *password);
 int comprobarAccion(int socket, int accion);
 int enviarAtaque(int socket, char *coords);
 
+void sumarTurno(int socket);
 #endif

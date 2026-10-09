@@ -17,7 +17,7 @@ int main(){
 
     server_addr.sin_family = AF_INET;
     server_addr.sin_addr.s_addr = INADDR_ANY;
-    server_addr.sin_port = htons(PORT);
+    server_addr.sin_port = htons(SERVER_PORT);
 
     if (bind(server_socket, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0)
     {
@@ -33,7 +33,7 @@ int main(){
         exit(EXIT_FAILURE);
     }
 
-    printf("Servidor escuchando en el puerto %d\n", PORT);
+    printf("Servidor escuchando en el puerto %d\n", SERVER_PORT);
 
     fd_set read_fds;
     int max_sd;
@@ -43,7 +43,7 @@ int main(){
     
     //-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-        while (1)
+    while (1)
     {
         int accionRealizada=0;
         FD_ZERO(&read_fds);
@@ -85,6 +85,17 @@ int main(){
                     break;
                 }
             }
+
+
+            /*
+            
+                    if (clients[i].socket == socket && findUser(clients[i].usuario, password))
+        {
+            strcpy(clients[i].contraseña, password);
+            clients[i].registered = 1;
+            return 1;
+        }
+            */
         }
 
         for (int i = 0; i < MAX_CLIENTS; i++)
@@ -92,9 +103,9 @@ int main(){
             int sd = client_sockets[i];
             if (FD_ISSET(sd, &read_fds))
             {
-                char entrada[100]; //Guarda todo el comando introducido por el jugador
+                char entrada[70]; //Guarda todo el comando introducido por el jugador
                 char comando[20]; //Guarda el comando
-                char parametros[80]; //Guarda los parametros del comando
+                char parametros[50]; //Guarda los parametros del comando
                 int partes;
                 int opcion = 0;
                 int bytes_read = recv(sd, entrada, sizeof(entrada), 0);
@@ -112,6 +123,8 @@ int main(){
                     partes=sscanf(entrada, "%s %s", comando, parametros);
                 }
 
+                accionRealizada = 0;
+
             //Comando vacio
 
 
@@ -126,75 +139,100 @@ int main(){
                         *letra = (char) toupper((unsigned char) *letra);
 
                     int descriptor=client_sockets[i];
-
+                    char usuario_actual[50];
+                    printf("Soy %s, y tengo la i: %i\n", usuario_actual, i);
                     //Asignacion de acciones
-                    if ((strcmp(comando, "USUARIO") == 0) && (comprobarCliente(descriptor) == 0))
+                    if ((strcmp(comando, "USUARIO") == 0) && (comprobarCliente(client_sockets[i]) == 0))
                         opcion = 1;
-                    else if ((strcmp(comando, "PASSWORD") == 0) && (comprobarCliente(descriptor) == 0))
+                    else if ((strcmp(comando, "PASSWORD") == 0) && (comprobarCliente(client_sockets[i]) == 0))
                         opcion = 2;                    
-                    else if ((strcmp(comando, "REGISTRO") == 0) && (comprobarCliente(descriptor) == 0))
+                    else if ((strcmp(comando, "REGISTRO") == 0) && (comprobarCliente(client_sockets[i]) == 0))
                         opcion = 3;
-                    else if ((strcmp(comando, "INICIAR-PARTIDA") == 0) && (comprobarCliente(descriptor) == 1))
+                    else if ((strcmp(comando, "INICIAR-PARTIDA") == 0) && (comprobarCliente(client_sockets[i]) == 1))
                         opcion = 4;
-                    else if ((strcmp(comando, "ATACAR") == 0) && (comprobarCliente(descriptor) == 1))
+                    else if ((strcmp(comando, "ATACAR") == 0) && (comprobarCliente(client_sockets[i]) == 1))
                         opcion = 5;
-                    else if ((strcmp(comando, "REFORZAR") == 0) && (comprobarCliente(descriptor) == 1))
+                    else if ((strcmp(comando, "REFORZAR") == 0) && (comprobarCliente(client_sockets[i]) == 1))
                         opcion = 6;
-                    else if ((strcmp(comando, "CONQUISTAR") == 0) && (comprobarCliente(descriptor) == 1))
+                    else if ((strcmp(comando, "CONQUISTAR") == 0) && (comprobarCliente(client_sockets[i]) == 1))
                         opcion = 7;
-                    else if ((strcmp(comando, "PASAR") == 0) && (comprobarCliente(descriptor) == 1))
+                    else if ((strcmp(comando, "PASAR") == 0) && (comprobarCliente(client_sockets[i]) == 1))
                         opcion = 8;
-                    else if ((strcmp(comando, "SALIR") == 0) && (comprobarCliente(descriptor) == 0))
+                    else if ((strcmp(comando, "SALIR") == 0) && (comprobarCliente(client_sockets[i]) == 0))
                         opcion = 9;
                     switch (opcion) {
                     case 1: //USUARIO
-                        if(comprobarNombre(parametros)){
-                            char msg []="-Err. Usuario ya conectado";
-                            send(client_sockets[i], msg, strlen(msg),0);
-                        listarClientes();
-                            break;
-                        }if (buscarUsuario(parametros, client_sockets[i])){
-                            asignarUsuario(client_sockets[i], parametros);
-                            char msg[] = "Usuario correcto, introduce la contraseña\n";
-                            send(client_sockets[i], msg, strlen(msg), 0);
-                        listarClientes();
-                            break;
-                        }else{
-                            char msg[] = "Usuario incorrecto.\n";
-                            send(client_sockets[i], msg, strlen(msg), 0);
-                        listarClientes();
-                            break;
-                        }
-                    case 2://CONTRASEÑA
-                        if (strlen(parametros)==0 || parametros=="\0"){
-                            char aviso[100];
-                            sprintf(aviso,"%s Por favor, introduzca una contraseña%s \n", BG_RED, DEFAULT );
+                        char aviso[100];
+                        if(esUsuario(parametros)==0){
+                            sprintf(aviso,"-Err. Usuario no esta registrado \n");
                             send(client_sockets[i], aviso, strlen(aviso), 0);
+                            break;
                         }
-                        if (introducirContra(client_sockets[i], parametros)){
-                            char msg[] = "Contraseña correcta, ha iniciado sesión\n\n\n";
-                            send(client_sockets[i], msg, strlen(msg), 0);
+                        printf("Usuario reconocido\n");
+                        if(esCliente(parametros)==0){
+                            if(asignarUsuario(client_sockets[i], parametros)==0){
+                                sprintf(aviso,"-Err. Algo salió mal \n");
+                                send(client_sockets[i], aviso, strlen(aviso), 0);
+                            }
+                            else{
+                                sprintf(aviso,"+Ok. usuario correcto \n");
+                                send(client_sockets[i], aviso, strlen(aviso), 0);
+                                listarClientes();
+                                strcpy(usuario_actual, parametros);
+                            }
+                            break;
+                        }     
+                        else{/*incorrecto*/
+                            sprintf(aviso,"-Err. Usuario ya en linea \n");
+                            send(client_sockets[i], aviso, strlen(aviso), 0);
+                            break;
+                        }
+                    
+                    case 2://CONTRASEÑA
+                        if(strlen(parametros)==0){
+                            sprintf(aviso,"-Err. Introduce contraseña, introduce usuario de nuevo \n");
+                            send(client_sockets[i], aviso, strlen(aviso), 0); 
+                            strcpy(usuario_actual, "\0");
+                            break;
+                        }
+                        else if(comprobarClave(parametros, usuario_actual)==1){
+                            sprintf(aviso, "+Ok. Contraseña correcta \n");
+                            send(client_sockets[i], aviso, strlen(aviso), 0); 
+                            listarClientes();
                         }
                         else{
-                            char msg[] = "Contraseña incorrecta y usuario no coinciden\n";
-                            send(client_sockets[i], msg, strlen(msg), 0);
+                            sprintf(aviso, "-Err. Contraseña incorrecta, introduce usuario de nuevo \n");
+                            send(client_sockets[i], aviso, strlen(aviso), 0);
+                            strcpy(usuario_actual, "\0");
                         }
-                        listarClientes();
                         break;
 
                     case 3://REGISTRAR UN NUEVO USUARIO
-                        char nombre[35];
+                        char nombre[50];
+                        nombre[0]='\0';
                         char clave[35];
+                        clave[0]='\0';
                         char basura[20];  //Orden previa a los datos
                         //debugeo printf("%s", parametros);
                         sscanf(entrada, "%s %s %s", basura, nombre, clave);
-                            if (buscarUsuario(nombre, client_sockets[i]) == 0){
-                                agregarUsuario(nombre, clave);
-                                char msg[] = "Usuario registrado correctamente, ya puede iniciar sesión\n";
+                        printf("nombre: %s (%li), clave: %s (%li), basura: %s (%li)\n",nombre, strlen(nombre), clave, strlen(clave), basura, strlen(basura));
+                            if (esUsuario(nombre) != 0 || strlen(nombre)<=0 || strlen(clave)<=0){
+                                char msg[100];
+                                
+                                if(strlen(nombre)<=0 && strlen(clave)<=0){
+                                    strcpy(msg,"-Err. No te hagas el gracioso y dame los datos niño\n");
+                                }
+                                else if(strlen(clave)<=0){
+                                    strcpy(msg,"-Err. Ponte una puta contraseña niño\n");
+                                }else if(strlen(nombre)<=0){
+                                    strcpy(msg, "-Err. No te hagas el gracioso, dime tu nombre\n");
+                                }else if(esUsuario(nombre)!=0){
+                                    strcpy(msg, "-Err. Tu ya esta aqui, inicia sesion\n");
+                                }
                                 send(client_sockets[i], msg, strlen(msg), 0);
-                            }
-                            else{
-                                char msg[] = "El usuario ya existe.\n";
+                            }else{
+                                agregarUsuario(nombre, clave);
+                                char msg[] = "+Ok. Usuario registrado correctamente, ya puede iniciar sesión\n";
                                 send(client_sockets[i], msg, strlen(msg), 0);
                             } 
                     
@@ -203,12 +241,12 @@ int main(){
                     case 4: //INIAR UNA PARTIDA
                         switch (agregarUsuarioPartida(client_sockets[i])){
                         case 0:{
-                            char msg[] = "Ha ocurrido un error de emparejamiento\n";
+                            char msg[] = "-Err. Ha ocurrido un error de emparejamiento\n";
                             send(client_sockets[i], msg, strlen(msg), 0);
                             break;
                         }
                         case 1:{
-                            char msg[] = "Esperando a otro jugador...\n";
+                            char msg[] = "+Ok. Esperando a otro jugador...\n";
                             send(client_sockets[i], msg, strlen(msg), 0);
                             break;
                         }
@@ -228,11 +266,13 @@ int main(){
                         break;
                     case 7:
                         comprobarAccion(client_sockets[i],3); //conquista
-                        break;
-                    case 8:
-                        if (partes == 1)
-                        accionRealizada = 1;
                         break;*/
+                    case 8:
+                        printf("Entré\n");
+                        accionRealizada = 1;
+                        sumarTurno(client_sockets[i]);
+                        
+                        break;
                     case 9: 
                         procesarSalida(client_sockets[i]);
                     break;
@@ -240,15 +280,12 @@ int main(){
                         printf("Opción no reconocida: %s\n", comando);
                         char msg[] = "Comando no reconocido.\n";
                         send(client_sockets[i], msg, strlen(msg), 0);
-                        break;
+
                     }
 
-
-
-
-    
-
-            }}
+                }
+                
+            }
 
                 
 }

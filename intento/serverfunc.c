@@ -1,6 +1,6 @@
 #include "server.h"
 #include "funciones_juego.h"
-// Nombres y contraseñas de usuarios
+// Nombres y contrasenas de usuarios
 struct User users[100] = {
     {"alvaro", "alvaro"},
     {"juan", "juan"},
@@ -24,24 +24,101 @@ int registrarCliente(int socket){
             clients[i].socket = socket;
             clients[i].registered = 0;
             strcpy(clients[i].usuario, "");
-            strcpy(clients[i].contraseña, "");
+            strcpy(clients[i].contrasena, "");
             printf("Cliente registrado en la posición %d (socket: %d)\n", i, socket);
             return 1;
         }
     }
     return 0;
 }
-
-int comprobarCliente(int socket){
-    for (int i = 0; i < MAX_CLIENTS; i++){
-        if (clients[i].socket == socket){
-            return clients[i].registered;
-        }
+/*
+Comprueba que el cliente este ya en linea.
+@paranm parametros, es el nombre introducido por el usuario
+@return 1 si esta en linea, 0 si no esta en linea
+*/
+int esCliente(char parametros[50]){
+    for(int i=0 ; i<MAX_CLIENTS ; i++){
+        if(strcmp(clients[i].usuario,parametros)==0){return 1;}
+    }
+    return 0;
+}
+/*
+Comprueba que el nombre introducido exista en la estructura de datos
+@param parametros nombre introducido por usuario
+@return 0 si no está en la estructura por lo que ha de registrarse
+@return 1 está la ed, puede proceder 
+*/
+int esUsuario(char parametros[50]){
+    for(int i=0 ; i<100 ; i++){
+        if(strcmp(users[i].usuario,parametros)==0){return 1;}
     }
     return 0;
 }
 
-int comprobarNombre(char *nombre){
+/*
+Asigna un socket al usuario y lo guarda en el vector de clientes
+@param socket id del socket recibido
+@param paramtros cadena con el nombre del usuario
+@return 1 si se asigno correctamente, 0 si algo salio mal
+*/
+int asignarUsuario(int socket, char parametros[50]){
+    int i=0;
+    while(clients[i].socket!=NULL){
+        i++;
+    }
+    if(i<MAX_CLIENTS){
+        clients[i].socket=socket;
+        strcpy(clients[i].usuario, parametros);
+        return 1;
+    }
+    return 0;
+}
+/*
+Comprueba que el usuario está en la matriz de clientes para estar en ella
+debe haber iniciado sesión
+@param socket es el descriptor generado por los mensajes recibidos
+@return 1 si el socket se encuentra en la matriz de clientes y está registrado, está autorizado a otras acciones
+        0 si no está en la matriz de registrados y no podrá realizar otras acciones
+*/
+int comprobarCliente(int socket){
+    for(int i=0 ; i<MAX_CLIENTS ; i++){
+        if((clients[i].socket==socket ) && (clients[i].registered==1)){return 1;}
+    }
+    return 0;
+}
+
+/*
+COmprueba que el usuario que hay en la ed de clientes haya escrito su verdadera contraseña
+@param parametros  contraseña introducida
+@param socket es la clave primari por la que vamos a buscar
+@return 1 es que la contraseña introducida es correcta
+ 0 Si ha escrito una gilipollez que no coincide.
+*/
+int comprobarClave(char parametros[50], char usuario_actual[50]){
+    int puntero_usuario;
+    int puntero_clave;
+    printf("Usuario actual: %s\n", usuario_actual);
+    for (puntero_usuario = 0; puntero_usuario < MAX_CLIENTS; puntero_usuario++){
+        if (strcmp(clients[puntero_usuario].usuario,usuario_actual)==0){
+            printf("Usuario encontrado: %s\n", clients[puntero_usuario].usuario);
+            break;
+        }
+    }
+    for(puntero_clave=0 ; puntero_clave<100 ; puntero_clave++){
+        if(strcmp(clients[puntero_usuario].usuario, users[puntero_clave].usuario)==0){
+            if(strcmp(users[puntero_clave].contrasena,parametros)==0){
+                strcpy(clients[puntero_usuario].contrasena, parametros);
+                clients[puntero_usuario].registered=1;
+                return 1;
+            }  
+        }
+    }
+        
+    return 0;   
+}
+
+
+int comprobarNombre(char nombre[50]){
     for (int i = 0; i < MAX_CLIENTS; i++)
     {
         if (strcmp(clients[i].usuario, nombre) == 0 && clients[i].registered == 1)
@@ -72,7 +149,8 @@ void listarClientes(){
     printf("%s\n", DEFAULT);
 }
 /*Comprueba que haya un usuario con tal nombre*/
-int buscarUsuario(char *parameter, int descriptor){
+int buscarUsuario(char parameter[50]){
+    
     for (int i = 0; i < 100; i++){
         if (strcmp(users[i].usuario, parameter) == 0){
             printf("Usuario %s encontrado.\n", parameter);
@@ -83,34 +161,25 @@ int buscarUsuario(char *parameter, int descriptor){
     return 0;
 }
 
-// Asigna el nombre user con el socket
-int asignarUsuario(int socket, char *user){
-    for (int i = 0; i < MAX_CLIENTS; i++){
-        if (clients[i].socket == socket){
-            strcpy(clients[i].usuario, user);
-            return 1;
-        }
-    }
-    return 0;
-}
+
 
 //introduce la contraseña del cliente y cambia el estado
-int introducirContra(int socket, char *password){
+int introducirContra(int socket, char *password){/*
     for (int i = 0; i < MAX_CLIENTS; i++){
-        if (clients[i].socket == socket && buscarUsuario(clients[i].usuario, password)){
+        if (clients[i].socket == socket && buscarUsuario(clients[i].usuario, password) && 0 == strcmp(password, clients[i].contrasena)){
             printf("contraseña\n");
-            strcpy(clients[i].contraseña, password);
+            strcpy(clients[i].contrasena, password);
             clients[i].registered = 1;
             return 1;
         }
-    }
+    }*/
     return 0;
 }   
 
 int buscarEntreUsuario(char *usuario, char *password){
     if (usuario == NULL || password == NULL || strlen(password) == 0){return 0;}
     for (int i = 0; i < 100; i++){
-        if ((strcmp(users[i].usuario, usuario) == 0) && (strcmp(users[i].contraseña, password) == 0)){return 1;}
+        if ((strcmp(users[i].usuario, usuario) == 0) && (strcmp(users[i].contrasena, password) == 0)){return 1;}
     }
     return 0;   
 }
@@ -119,7 +188,7 @@ int agregarUsuario(char *username, char *password){
     for (int i = 0; i < 100; i++){
         if (strcmp(users[i].usuario, "") == 0){
             strcpy(users[i].usuario, username);
-            strcpy(users[i].contraseña, password);
+            strcpy(users[i].contrasena, password);
             printf("Usuario %s añadido.\n", username);
             return 1;
         }
@@ -130,7 +199,10 @@ int agregarUsuario(char *username, char *password){
 int getIdPartidaJugador(int socket){
     for(int i = 0; i < MAX_PARTIDAS; i++){
         if(partidas[i].estado!=2){continue;}
-        if(partidas[i].jugadores[0]==socket || partidas[i].jugadores[1]==socket){return i;}
+        if(partidas[i].jugadores[0]==socket || partidas[i].jugadores[1]==socket){
+            printf("hola\n");
+            return i;
+        }
     }
     return -1;
 }
@@ -179,18 +251,18 @@ for (int i = 0; i < MAX_PARTIDAS; i++){
             char msg2[100];
 
             
-            sprintf(msg1, "+Ok.Empieza_la_partida.\n");
-            sprintf(msg2, "+Ok.Empieza_la_partida.\n");
+            sprintf(msg1, "+Ok.Empieza la partida.\n");
 
             send(partidas[i].jugadores[1], msg1, strlen(msg1), 0);
-            send(partidas[i].jugadores[0], msg2, strlen(msg2), 0);
+            send(partidas[i].jugadores[0], msg1, strlen(msg1), 0);
             mostrarTablero(partidas[i].tablero);
             char tablero[200];
             codificarTablero(partidas[i].tablero, tablero);
 
             sleep(1);
-            send(partidas[i].jugadores[1], tablero, strlen(tablero), 0);
-            send(partidas[i].jugadores[0], tablero, strlen(tablero), 0);
+            write(partidas[i].jugadores[0], tablero, strlen(tablero));
+            sleep(1);
+            write(partidas[i].jugadores[1], tablero, strlen(tablero));
 
             
             printf("%s %sPARTIDA INICIADA \n %s \n", BG_GREEN,WHITE, DEFAULT);
@@ -258,19 +330,16 @@ int getIndiceJugador(struct Partida *p, int socket){
 void resetearPartida(struct Partida *p){
     memset(p, 0, sizeof(struct Partida));
 }
+/*Se encarga de llevar los turnos de la partida*/
+void sumarTurno(int socket){
+    int idpartida=getIdPartidaJugador(socket);
+    partidas[idpartida].turno++;
+    printf("id:%d turno:%d, jugador1:%d jugador2: %d, estado:%d", partidas[idpartida].id, partidas[idpartida].turno,partidas[idpartida].jugadores[0],partidas[idpartida].jugadores[1], partidas[idpartida].estado );
+}
+
 
 void procesarSalida(int socket)
-{/*
-    int partidaIndex = getIdPartidaDeJugador(socket);
-    if (partidaIndex == -1)
-        return;
-
-    struct Partida *p = &partidas[partidaIndex];
-    int jugador = getIndiceJugador(p, socket);
-    int otro = 1 - jugador;
-
-    send(socket, "+Ok. Has salido de la partida.\n", 40, 0);
-    send(p->jugadores[otro], "+Ok. Tu oponente ha abandonado. Ganas la partida.\n", 60, 0);
-
-    resetPartida(p);
-*/}
+{
+    /*pid_t pid = getpid();
+    kill(pid, 9);*/
+}

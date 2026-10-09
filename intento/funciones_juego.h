@@ -13,20 +13,7 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <stdbool.h>
-
-#define PORT 2026
-#define MAX_CLIENTS 10
-#define MAX_PARTIDAS 4
-#define BUFFER_SIZE 1000
-#define MAX_CASILLAS 5
-#define MAX_TURNOS 100
-
-#define DEFAULT    "\x1B[0m"
-#define BG_RED     "\x1B[41m"
-#define BG_GRAY    "\x1B[48;2;176;174;174m"
-#define BG_GREEN   "\x1B[42m"
-#define BLACK   "\x1B[30m"
-#define WHITE   "\x1B[37m"
+#include "macros.h"
 
 
 

@@ -42,20 +42,20 @@ int main(){
         break;}
         send(sock, message, strlen(message), 0);
 
-        int bytes_received = recv(sock, buffer, sizeof(buffer) - 1, 0);
+        int bytes_received = read(sock, buffer, sizeof(buffer) - 1) ;
 
-            printf("%s", buffer);
         if (bytes_received > 0)
         {
             buffer[bytes_received] = '\0';
 
 
-            if(buffer[0]!='0' && buffer[0]!='1' && buffer[0]!='2'){
-            printf("[SERVER]: %s\n", buffer);
-            }else if(buffer[0]=='0' || buffer[0]=='1' || buffer[0]=='2'){
+            if(isdigit(buffer[0])==0){
+            printf("[USUARIO]: %s\n", buffer);
+            }
+            else{
                 printf("Mostrando tablero\n");
-                 strcat(buffer, "]");
-              reconstruirTablero(tablero ,buffer); //codigo a la carbonara
+                strcat(buffer, "]");
+                reconstruirTablero(tablero ,buffer); //codigo a la carbonara
             }
 
             if (strncmp(buffer, "Esperando", 9) == 0)
@@ -67,7 +67,8 @@ int main(){
                     {
                         buffer[bytes_received] = '\0';
                         printf("[SERVER]: %s\n", buffer);
-                        if (strncmp(buffer, "+Ok. Empiez", 11) == 0)
+                        strcpy(buffer, quitarn(buffer));
+                        if (strcmp(buffer, "+Ok.Empieza la partida.") == 0)
                             break;
                     }
                 }
