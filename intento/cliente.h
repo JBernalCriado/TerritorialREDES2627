@@ -6,9 +6,9 @@
 #include <string.h>
 #include <unistd.h>
 #include <arpa/inet.h>
-#include "funciones_juego.h"
-#include "macros.h"
 #include <stdbool.h>
+#include "macros.h"
+#include "server.h"
 
 
 #endif

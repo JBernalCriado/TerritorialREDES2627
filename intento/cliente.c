@@ -2,11 +2,13 @@
 
 struct Casilla tablero[5][5];
 
+
 int main(){
     int sock;
     struct sockaddr_in server_addr;
     char message[BUFFER_SIZE];
     char buffer[BUFFER_SIZE];
+    int jugador;
     /*
     Función para abrir el socket
     afintet indica el grupo de ips a usar
@@ -36,12 +38,29 @@ int main(){
         buffer[0]='\0';
         printf("Opciones: \n USUARIO [usuario] \n PASSWORD [contraseña] \n REGISTRO  [usuario] [contraseña] \n INCIAR-PARTIDA \n ATACAR \n REFORZAR \n CONQUISTAR \n PASAR \n SALIR \n");
         fgets(message, sizeof(message), stdin);
+        strcpy(message, quitarn(message));
+        if ((strcmp(message, "SALIR") == 0) || (strcmp(message, "salir") == 0)){
+            sleep(1);
+            send(sock, message, strlen(message), 0);
+                    int bytes_received = recv(sock, buffer, sizeof(buffer) - 1, 0);
+                    if (bytes_received > 0)
+                    {
+                        buffer[bytes_received] = '\0';
+                        printf("[SERVER]: %s\n", buffer);
+                        strcpy(buffer, quitarn(buffer));
+                    }
 
-        if (strncmp(message, "SALIR", 5) == 0){
-        send(sock, message, strlen(message), 0);
-        break;}
-        send(sock, message, strlen(message), 0);
+                
+            close(sock);
+            strcpy(buffer, quitarn(buffer));
+            if(strcmp(buffer, "+Ok. Buena tirada de cable")==0){
+                printf("10 segundos de ban por tirar del cable\n");
+                sleep(10);
+            }
+            printf("Desconectado del servidor.\n");
 
+            exit(EXIT_SUCCESS);
+        }else{send(sock, message, strlen(message), 0);}
         int bytes_received = read(sock, buffer, sizeof(buffer) - 1) ;
 
         if (bytes_received > 0)
@@ -50,12 +69,17 @@ int main(){
 
 
             if(isdigit(buffer[0])==0){
-            printf("[USUARIO]: %s\n", buffer);
+                printf("[SERVER]: %s\n", buffer);
             }
             else{
                 printf("Mostrando tablero\n");
-                strcat(buffer, "]");
-                reconstruirTablero(tablero ,buffer); //codigo a la carbonara
+                if(buffer[strlen(buffer)-1] == '1'){
+                    jugador=1;
+                }
+                else{
+                    jugador=2;
+                }
+                reconstruirTablero(tablero, buffer); //codigo a la carbonara
             }
 
             if (strncmp(buffer, "Esperando", 9) == 0)
@@ -66,7 +90,7 @@ int main(){
                     if (bytes_received > 0)
                     {
                         buffer[bytes_received] = '\0';
-                        printf("[SERVER]: %s\n", buffer);
+                        printf("[SERVER]: %s (Pulsa enter)\n", buffer);
                         strcpy(buffer, quitarn(buffer));
                         if (strcmp(buffer, "+Ok.Empieza la partida.") == 0)
                             break;
@@ -77,9 +101,5 @@ int main(){
         
     }
 
-    close(sock);
-    printf("Desconectado del servidor.\n");
 
-
-    return EXIT_SUCCESS;
 }

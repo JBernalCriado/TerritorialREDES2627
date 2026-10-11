@@ -1,12 +1,12 @@
 #include "server.h"
 int main(){
-
+     //Establece la semilla para los numeros aleatorios
     //+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
     //Pa que enchufe
     int server_socket, new_socket, client_sockets[MAX_CLIENTS] = {0};
     struct sockaddr_in server_addr, client_addr;
     socklen_t addr_len = sizeof(client_addr);
-    srand(time(NULL));
+    srand(ANYDESK*numeroAleatorio()+numeroAleatorio()/ANYDESK*98675430);
 
     server_socket = socket(AF_INET, SOCK_STREAM, 0);
     if (server_socket < 0)
@@ -37,6 +37,7 @@ int main(){
 
     fd_set read_fds;
     int max_sd;
+    iniciarPartidas();
     //+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-
 
     // LEEER MENSAJES
@@ -74,13 +75,11 @@ int main(){
                 perror("accept");
                 continue;
             }
+            //muerte a los fantasmas
+           // registrarCliente(new_socket);
 
-            registrarCliente(new_socket);
-
-            for (int i = 0; i < MAX_CLIENTS; i++)
-            {
-                if (client_sockets[i] == 0)
-                {
+            for (int i = 0; i < MAX_CLIENTS; i++){
+                if (client_sockets[i] == 0){
                     client_sockets[i] = new_socket;
                     break;
                 }
@@ -98,8 +97,7 @@ int main(){
             */
         }
 
-        for (int i = 0; i < MAX_CLIENTS; i++)
-        {
+        for (int i = 0; i < MAX_CLIENTS; i++){
             int sd = client_sockets[i];
             if (FD_ISSET(sd, &read_fds))
             {
@@ -120,27 +118,26 @@ int main(){
                 {
                     entrada[bytes_read] = '\0';
                     printf("Mensaje recibido: %s\n", entrada);
-                    partes=sscanf(entrada, "%s %s", comando, parametros);
+                    partes=sscanf(entrada, "%s %79[^\n]", comando, parametros);
                 }
 
                 accionRealizada = 0;
-
-            //Comando vacio
-
-
+                //Comando vacio
+                
                     quitarn(entrada);
                     if (partes < 1) {
                         printf("Comando vacio.\n");
                         continue;
                     }
-
+                    
                     //Paso a mayusculas
                     for (char *letra = comando; *letra != '\0'; letra++)
                         *letra = (char) toupper((unsigned char) *letra);
 
                     int descriptor=client_sockets[i];
                     char usuario_actual[50];
-                    printf("Soy %s, y tengo la i: %i\n", usuario_actual, i);
+                    char aviso[100];
+                    //printf("Soy %s, y tengo la i: %i\n", usuario_actual, i);
                     //Asignacion de acciones
                     if ((strcmp(comando, "USUARIO") == 0) && (comprobarCliente(client_sockets[i]) == 0))
                         opcion = 1;
@@ -158,11 +155,11 @@ int main(){
                         opcion = 7;
                     else if ((strcmp(comando, "PASAR") == 0) && (comprobarCliente(client_sockets[i]) == 1))
                         opcion = 8;
-                    else if ((strcmp(comando, "SALIR") == 0) && (comprobarCliente(client_sockets[i]) == 0))
+                    else if (strcmp(comando, "SALIR") == 0)
                         opcion = 9;
                     switch (opcion) {
                     case 1: //USUARIO
-                        char aviso[100];
+                        
                         if(esUsuario(parametros)==0){
                             sprintf(aviso,"-Err. Usuario no esta registrado \n");
                             send(client_sockets[i], aviso, strlen(aviso), 0);
@@ -189,13 +186,14 @@ int main(){
                         }
                     
                     case 2://CONTRASEÑA
+                        printf("contraseña recibida: %s\n", parametros);
                         if(strlen(parametros)==0){
                             sprintf(aviso,"-Err. Introduce contraseña, introduce usuario de nuevo \n");
                             send(client_sockets[i], aviso, strlen(aviso), 0); 
                             strcpy(usuario_actual, "\0");
                             break;
                         }
-                        else if(comprobarClave(parametros, usuario_actual)==1){
+                        else if(comprobarClave(parametros, client_sockets[i])==1){
                             sprintf(aviso, "+Ok. Contraseña correcta \n");
                             send(client_sockets[i], aviso, strlen(aviso), 0); 
                             listarClientes();
@@ -205,6 +203,7 @@ int main(){
                             send(client_sockets[i], aviso, strlen(aviso), 0);
                             strcpy(usuario_actual, "\0");
                         }
+
                         break;
 
                     case 3://REGISTRAR UN NUEVO USUARIO
@@ -235,11 +234,16 @@ int main(){
                                 char msg[] = "+Ok. Usuario registrado correctamente, ya puede iniciar sesión\n";
                                 send(client_sockets[i], msg, strlen(msg), 0);
                             } 
-                    
+
                         strcpy(entrada, "");
                         break;
                     case 4: //INIAR UNA PARTIDA
                         switch (agregarUsuarioPartida(client_sockets[i])){
+                        case -1:{
+                            char msg[] = "-Err. Ya estás en una partida.\n";
+                            send(client_sockets[i], msg, strlen(msg), 0);
+                            break;
+                        }
                         case 0:{
                             char msg[] = "-Err. Ha ocurrido un error de emparejamiento\n";
                             send(client_sockets[i], msg, strlen(msg), 0);
@@ -251,37 +255,109 @@ int main(){
                             break;
                         }
                         // Si hay dos jugadores comienza la partida desde la función agregarUsuarioPartida
-                        default:{break;}
                         }
                         break;
                     break;
-                    case 5:
-                        if(comprobarAccion(client_sockets[i], 1)&& partes == 2){
-                            enviarAtaque(client_sockets[i], parametros);
-                        } //ataque
-
-                        break;
-                    /*case 6:
-                        comprobarAccion(client_sockets[i], 2);//refuerzo
-                        break;
-                    case 7:
-                        comprobarAccion(client_sockets[i],3); //conquista
-                        break;*/
-                    case 8:
-                        printf("Entré\n");
-                        accionRealizada = 1;
-                        sumarTurno(client_sockets[i]);
-                        
-                        break;
+                    case 5: //atacar
+                        switch (comprobarAccion(client_sockets[i],1)){
+                            case -1:
+                                sprintf(aviso,"-Err. No es tu turno. \n");
+                                send(client_sockets[i], aviso, strlen(aviso), 0); 
+                            break;
+                            case 0:
+                                if(Ataque(client_sockets[i], parametros)==1){
+                                    accionRealizada = 1;
+                                    sprintf(aviso,"+Ok. Ataque realizado con éxito. \n");
+                                    send(client_sockets[i], aviso, strlen(aviso), 0); 
+                                }
+                                else{
+                                    sprintf(aviso,"-Err. No se pudo realizar la acción \n");
+                                    send(client_sockets[i], aviso, strlen(aviso), 0); 
+                                }
+                            break;
+                            case 1:
+                                sprintf(aviso,"-Err. No es posible tal acción. \n");
+                                send(client_sockets[i], aviso, strlen(aviso), 0); 
+                            break;
+                            if(comprobarVictoria(client_sockets[i])==1){
+                                chaparPartida(client_sockets[i]);
+                            }
+                        };
+                    case 6: //reforzar
+                        switch (comprobarAccion(client_sockets[i],2)){
+                            case -1:
+                                sprintf(aviso,"-Err. No es tu turno. \n");
+                                send(client_sockets[i], aviso, strlen(aviso), 0); 
+                            break;
+                            case 0:
+                                if(Reforzar(client_sockets[i], parametros)==1){
+                                    accionRealizada = 1;
+                                    sprintf(aviso,"+Ok. Refuerzos enviados con éxito. \n");
+                                    send(client_sockets[i], aviso, strlen(aviso), 0); 
+                                }
+                                else{
+                                    sprintf(aviso,"-Err. No se pudo realizar la acción \n");
+                                    send(client_sockets[i], aviso, strlen(aviso), 0); 
+                                }
+                            break;
+                            case 1:
+                                sprintf(aviso,"-Err. No es posible tal acción. \n");
+                                send(client_sockets[i], aviso, strlen(aviso), 0); 
+                            break;
+                        }
+                            if(comprobarVictoria(client_sockets[i])==1){
+                                chaparPartida(client_sockets[i]);
+                            }
+                            break;
+                    case 7://Conquista
+                        switch (comprobarAccion(client_sockets[i],3)){
+                            case -1:
+                                sprintf(aviso,"-Err. No es tu turno. \n");
+                                send(client_sockets[i], aviso, strlen(aviso), 0); 
+                            break;
+                            case 0:
+                                if(Conquista(client_sockets[i], parametros)==1){
+                                    accionRealizada = 1;
+                                    sprintf(aviso,"+Ok. Conquista realizada con éxito. \n");
+                                    send(client_sockets[i], aviso, strlen(aviso), 0); 
+                                }
+                                else{
+                                    sprintf(aviso,"-Err. No se pudo realizar la acción \n");
+                                    send(client_sockets[i], aviso, strlen(aviso), 0); 
+                                }
+                            break;
+                            case 1:
+                                sprintf(aviso,"-Err. No es posible tal acción. \n");
+                                send(client_sockets[i], aviso, strlen(aviso), 0); 
+                            break;
+                        }
+                            if(comprobarVictoria(client_sockets[i])==1){
+                                chaparPartida(client_sockets[i]);
+                            }
+                            break;
+                    case 8://PASAR
+                            accionRealizada=1;
+                            if(comprobarVictoria(client_sockets[i])==1){
+                                chaparPartida(client_sockets[i]);
+                            }
+                    break;
                     case 9: 
-                        procesarSalida(client_sockets[i]);
+                        salir(client_sockets[i]);
                     break;
                     default:
                         printf("Opción no reconocida: %s\n", comando);
                         char msg[] = "Comando no reconocido.\n";
                         send(client_sockets[i], msg, strlen(msg), 0);
+                    break;
+                    
+                }
+                
+                parametros[0]='\0';
+                if(accionRealizada==1){
+                    actualizarPartida(client_sockets[i]);
+                }
+                //COMPROBAR VICTORIA
 
-                    }
 
                 }
                 

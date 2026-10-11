@@ -12,10 +12,15 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <netinet/in.h>
-#include "funciones_juego.h"
 #include "macros.h"
+#include <stdbool.h>
+#include <ctype.h>
 
+struct Casilla{
+    int jugador, soldados;
+    //Para indicar si una coordenada ha cambiado y si se ha pasado
 
+};
 
 struct User
 {
@@ -26,11 +31,12 @@ struct User
 
 struct Partida
 {
-    int id;
-    int estado;             
-    int jugadores[2];
-    struct Casilla tablero [5][5];
-    int turno;  
+    int id;// Identificador de partida
+    int estado;
+    //Indica si la partida está en curso 0 no lo está y si es 1 lo está
+    int jugadores[2];// Guarda si es jugador 1 o jugador 2 a través de alamacenar su socket
+    struct Casilla tablero [5][5];// Tablero de la partida
+    int turno; 
 };
 
 struct Cliente
@@ -48,30 +54,39 @@ int registrarCliente(int socket);
 /*
 Funcion encargada de comprobar que los clientes estén en una partida
 */
-int agregarUsuarioPartida(int socketjugador);
-int agregarUsuario(char *username, char *password);
-int buscarEntreUsuario(char *usuario, char *password);
-int buscarUsuario(char parameter[50]);
-int comprobarNombre(char nombre[50]);
-int getIdPartidaJugador(int socket);
-int getIndiceJugador(struct Partida *p, int socket);
-void procesarSalida(int socket);
-void resetearPartida(struct Partida *p);
 
 //REMAKE
-
-
-
+int agregarUsuario(char *username, char *password);
+int asignarUsuario(int socket, char parametros[50]);
 int esCliente(char parametros[50]);
 int comprobarCliente(int socket);
+int comprobarClave(char parametros[50], int socket);
 int esUsuario(char parametros[50]);
-int asignarUsuario(int socket, char parametros[50]);
-int comprobarClave(char parametros[50], char usuario_actual[50]);
 
-
-int introducirContra(int socket, char *password);
+//Funciones Juego
+void iniciarPartidas();
+void crearTablero(struct Casilla tablero[5][5]);
+void enviarTableroAJugadores(struct Casilla tablero[5][5], int indicePartida);
+void codificarTablero(struct Casilla tablero[5][5], char mensaje[200]);
+void reconstruirTablero(struct Casilla tablero[5][5], char mensaje[200]);
+int numeroAleatorio();
+void mostrarTablero(struct Casilla tablero[5][5]);
 int comprobarAccion(int socket, int accion);
-int enviarAtaque(int socket, char *coords);
+int comprobarVictoria(int socket);
+char* quitarn(char* cadena);
 
-void sumarTurno(int socket);
+
+//REMAKE 2
+int agregarUsuarioPartida(int socketjugador);
+int comprobarAccion(int socket, int accion);
+void mostrarTableroClientes(struct Casilla tablero[5][5], int jugador);
+int Conquista(int socket, char coordenadas[50]);
+int Ataque(int socket, char coordenadas[50]);
+int Reforzar(int socket, char coordenadas[50]);
+void traductorCoordenadasC(const char coordenadas[], int origen[2], int destino[2], int *soldados);
+int getIndicePartida(int socket);
+int getIdJugador(int socket, int indicePartida);
+void actualizarPartida(int socket);
+int salir(int socket);  
+void chaparPartida(int socket);
 #endif

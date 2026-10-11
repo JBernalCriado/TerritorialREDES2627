@@ -2,14 +2,14 @@
 #define MACROS_H
 
 //Server
-#define SERVER_PORT 12341
+#define SERVER_PORT 2026
 #define SERVER_IP "127.0.0.1"
 #define MAX_CLIENTS 10
 #define MAX_PARTIDAS 4
 #define BUFFER_SIZE 1000
 #define MAX_CASILLAS 5
 #define MAX_TURNOS 10
-
+#define ANYDESK 57
 
 /*
 Colorinchis 
