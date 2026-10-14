@@ -89,4 +89,7 @@ int getIdJugador(int socket, int indicePartida);
 void actualizarPartida(int socket);
 int salir(int socket);  
 void chaparPartida(int socket);
+void establecerSemilla();
+void limpiarBuffer();
+
 #endif

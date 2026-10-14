@@ -9,7 +9,7 @@
 #define BUFFER_SIZE 1000
 #define MAX_CASILLAS 5
 #define MAX_TURNOS 10
-#define ANYDESK 57
+#define ANYDESK 61
 
 /*
 Colorinchis 
@@ -17,6 +17,7 @@ Colorinchis
     https://c-for-dummies.com/blog/?p=5291
     https://c-for-dummies.com/blog/?p=5270
 */
+#define RESHIRAM   "\x1B[47m"
 #define BLACK   "\x1B[30m"
 #define RED     "\x1b[31m"
 #define GREEN   "\x1b[32m"
@@ -44,6 +45,8 @@ Colorinchis
 #define BG_LGREEN  "\x1B[48;2;17;245;120m"
 #define BG_GRAY    "\x1B[48;2;176;174;174m"
 #define BG_ROSE    "\x1B[48;2;255;151;203m"
+#define ZEKROM   "\x1B[40m"
+
 
 
 

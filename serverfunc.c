@@ -235,7 +235,8 @@ int agregarUsuarioPartida(int socketjugador){
         printf("[PARTIDA] Indice:%i, ID:%i Jugador 1: %i, Jugador 2: %d\n",i, partidas[i].id, partidas[i].jugadores[0], partidas[i].jugadores[1]);
         crearTablero(partidas[i].tablero);
 
-        char webos[45] = "+Ok.Empieza la partida. (Pulsa enter)";
+        char webos[45] = "+Ok. Empieza la partida. (Pulsa enter)";
+        send(partidas[i].jugadores[0], webos, sizeof(webos), 0);
         send(partidas[i].jugadores[1], webos, sizeof(webos), 0);
 
         enviarTableroAJugadores(partidas[i].tablero, i);
@@ -786,20 +787,24 @@ int comprobarVictoria(int socket){
 */
 int salir(int socket){
     int indicepartida=getIndicePartida(socket);
+    char msg[100]="+Ok. Buena tirada de cable.\n";
     if(indicepartida!=-1){
-        char msg[100]="+Ok. Buena tirada de cable\n";
         printf("%s\n",msg);
         if(partidas[indicepartida].jugadores[0]==socket){
             send(partidas[indicepartida].jugadores[0], msg, sizeof(msg), 0);
-            sprintf(msg, "+Ok. El oponente ha terminado la partida");
+            sprintf(msg, "+Ok. El oponente ha terminado la partida.");
             send(partidas[indicepartida].jugadores[1], msg, sizeof(msg), 0);
         }else{
             send(partidas[indicepartida].jugadores[1], msg, sizeof(msg), 0);
-            sprintf(msg, "+Ok. El oponente ha terminado la partida");
+            sprintf(msg, "+Ok. El oponente ha terminado la partida.");
             send(partidas[indicepartida].jugadores[0], msg, sizeof(msg), 0);
         }
         comprobarVictoria(socket);
         chaparPartida(socket);
+    }
+    else{
+        strcpy(msg, "+Ok. Chau.");
+        send(socket, msg, sizeof(msg), 0);
     }
     for(int i=0 ; i<MAX_CLIENTS ; i++){
         if(clients[i].socket==socket){
@@ -837,4 +842,15 @@ void chaparPartida(int socket){
     partidas[indicePartida].jugadores[1]=0;
     partidas[indicePartida].turno=0;
 
+}
+
+void establecerSemilla(){
+    srand(time(NULL)*(ANYDESK*rand()+(rand()/ANYDESK*98675430)*(rand()%ANYDESK)*(ANYDESK%rand())));
+}
+
+/*Limpiar el buffer para evitar problemas en el fgetc
+*/
+void limpiarBuffer(){
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF);
 }

@@ -6,7 +6,7 @@ int main(){
     int server_socket, new_socket, client_sockets[MAX_CLIENTS] = {0};
     struct sockaddr_in server_addr, client_addr;
     socklen_t addr_len = sizeof(client_addr);
-    srand(ANYDESK*numeroAleatorio()+numeroAleatorio()/ANYDESK*98675430);
+    establecerSemilla();
 
     server_socket = socket(AF_INET, SOCK_STREAM, 0);
     if (server_socket < 0)
@@ -226,7 +226,7 @@ int main(){
                                 }else if(strlen(nombre)<=0){
                                     strcpy(msg, "-Err. No te hagas el gracioso, dime tu nombre\n");
                                 }else if(esUsuario(nombre)!=0){
-                                    strcpy(msg, "-Err. Tu ya esta aqui, inicia sesion\n");
+                                    strcpy(msg, "-Err. Tu ya estas aqui, inicia sesion\n");
                                 }
                                 send(client_sockets[i], msg, strlen(msg), 0);
                             }else{
