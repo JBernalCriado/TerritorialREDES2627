@@ -9,7 +9,7 @@
 #define BUFFER_SIZE 1000
 #define MAX_CASILLAS 5
 #define MAX_TURNOS 10
-#define ANYDESK 61
+#define ANYDESK 62
 
 /*
 Colorinchis 
