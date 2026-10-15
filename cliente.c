@@ -46,6 +46,7 @@ int main(){
     FD_SET(sock,&readfds);
 
     printf("%s%sConectado al servidor %s:%d%s\n", BG_GREEN, WHITE, SERVER_IP, SERVER_PORT, DEFAULT);
+    printf("[ENTER]: CONTINUAR\n");
     
     do
 	{
@@ -53,15 +54,15 @@ int main(){
         salida = select(sock+1,&auxfds,NULL,NULL,NULL);
         buffer[0]='\0';
         int bytes_received=0;
-
         //Tengo mensaje desde el servidor
         if(FD_ISSET(sock, &auxfds)){
             bzero(buffer,sizeof(buffer));
             recv(sock,buffer,sizeof(buffer),0);
             
-            printf("\n%s\n",buffer);
-            strcpy(buffer, quitarn(buffer));
-            if(isdigit(buffer[0])!=0){
+            if((isdigit(buffer[0])==0) || isdigit(buffer[strlen(buffer)-1])==0){            
+                printf("\n%s\n",buffer);
+            }else{
+                strcpy(buffer, quitarn(buffer));
                 reconstruirTablero(tablero, buffer);
             }
             if(strcmp(buffer, "+Ok. Esperando a otro jugador...")==0){
@@ -88,6 +89,7 @@ int main(){
                 fin=true;
             }
             else{
+                printf("[ENTER]: CONTINUAR\n");
                 continue;
             }
         }
@@ -99,16 +101,18 @@ int main(){
             strcpy(message, quitarn(message));
             if(strcmp(message,"\0")==0){
                 printf("Comando vacio\n");
+                printf("[ENTER]: CONTINUAR\n");
                 continue;
             }
             send(sock, message, strlen(message), 0);
+            message[0]='\0';
         }
         
-				
+        
     }while(fin==false);
-		
+    
     close(sock);
-
+    
     exit(EXIT_SUCCESS);
 		
 }
