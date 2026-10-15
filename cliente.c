@@ -9,11 +9,12 @@ int main(){
     char message[BUFFER_SIZE];
     char buffer[BUFFER_SIZE];
     int jugador;
-    bool esfin=false;
+    bool fin=false;
+    bool enPartida=false;
 	socklen_t len_sockname;
     	fd_set readfds, auxfds;
     	int salida;
-    	int fin = 0;
+    	int fint = 0;
 	/* --------------------------------------------------
 		Se abre el socket 
 	---------------------------------------------------*/
@@ -58,12 +59,19 @@ int main(){
         if(FD_ISSET(sock, &auxfds)){
             bzero(buffer,sizeof(buffer));
             recv(sock,buffer,sizeof(buffer),0);
-            
-            if((isdigit(buffer[0])==0) || isdigit(buffer[strlen(buffer)-1])==0){            
+            strcpy(buffer, quitarn(buffer));
+            if(strncmp(buffer, "[FIN]", 5)==0){
+                printf("Fin de la partida\n");
+                continue;
+            }
+            if((isdigit(buffer[0])==0)){            
                 printf("\n%s\n",buffer);
             }else{
-                strcpy(buffer, quitarn(buffer));
                 reconstruirTablero(tablero, buffer);
+            }
+            if(strcmp(buffer, "+Ok. Empieza la partida. (Pulsa enter)") == 0){
+                enPartida=true;
+                continue;
             }
             if(strcmp(buffer, "+Ok. Esperando a otro jugador...")==0){
                 while(1){
@@ -73,20 +81,27 @@ int main(){
                         strcpy(message, quitarn(message));
                         printf("[SERVER]: %s\n", buffer);
                         if(strcmp(buffer, "+Ok. Empieza la partida. (Pulsa enter)") == 0){
+                            enPartida = true;
                             break;
                         }
                     }
                 }
             }
             if(strcmp(buffer, "+Ok. Buena tirada de cable.")==0){
+                enPartida=false;
                 printf("10 segundos de ban por tirar del cable\n");
                 sleep(10);
                 printf("Desconectando del servidor\n");
                 fin=true;
             }
-            if(strcmp(buffer, "+Ok. El oponente ha terminado la partida.")==0 || strcmp(buffer, "+Ok. Chau.")==0){
+            if(strcmp(buffer, "+Ok. Chau.")==0){
+                enPartida=false;
                 printf("Desconectando del servidor\n");
                 fin=true;
+            }
+            if(strcmp(buffer, "+Ok. El oponente ha terminado la partida.")==0){
+                printf("Desconectando del servidor\n");
+                enPartida = false;
             }
             else{
                 printf("[ENTER]: CONTINUAR\n");
@@ -104,6 +119,10 @@ int main(){
                 printf("[ENTER]: CONTINUAR\n");
                 continue;
             }
+            if(strlen(message)>BUFFER_SIZE){
+                continue;
+            }
+            
             send(sock, message, strlen(message), 0);
             message[0]='\0';
         }

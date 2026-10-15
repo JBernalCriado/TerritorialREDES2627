@@ -272,17 +272,23 @@ int main(){
                                 }
                                 else{
                                     sprintf(aviso,"-Err. No se pudo realizar la acción \n");
-                                    send(client_sockets[i], aviso, strlen(aviso), 0); 
+                                    send(client_sockets[i], aviso, strlen(aviso), 0);
                                 }
                             break;
                             case 1:
                                 sprintf(aviso,"-Err. No es posible tal acción. \n");
                                 send(client_sockets[i], aviso, strlen(aviso), 0); 
                             break;
+                            case 2:
+                                sprintf(aviso,"-Err. No estás en partida. \n");
+                                send(client_sockets[i], aviso, strlen(aviso), 0); 
+                            break;
                             if(comprobarVictoria(client_sockets[i])==1){
                                 chaparPartida(client_sockets[i]);
                             }
+                        
                         };
+                        break;
                     case 6: //reforzar
                         switch (comprobarAccion(client_sockets[i],2)){
                             case -1:
@@ -304,7 +310,11 @@ int main(){
                                 sprintf(aviso,"-Err. No es posible tal acción. \n");
                                 send(client_sockets[i], aviso, strlen(aviso), 0); 
                             break;
-                        }
+                            case 2:
+                                sprintf(aviso,"-Err. No estás en partida. \n");
+                                send(client_sockets[i], aviso, strlen(aviso), 0); 
+                            break;
+                            }   
                             if(comprobarVictoria(client_sockets[i])==1){
                                 chaparPartida(client_sockets[i]);
                             }
@@ -330,15 +340,28 @@ int main(){
                                 sprintf(aviso,"-Err. No es posible tal acción. \n");
                                 send(client_sockets[i], aviso, strlen(aviso), 0); 
                             break;
+                            case 2:
+                                sprintf(aviso,"-Err. No estás en partida. \n");
+                                send(client_sockets[i], aviso, strlen(aviso), 0); 
+                            break;
                         }
                             if(comprobarVictoria(client_sockets[i])==1){
                                 chaparPartida(client_sockets[i]);
                             }
                             break;
                     case 8://PASAR
-                            accionRealizada=1;
-                            if(comprobarVictoria(client_sockets[i])==1){
-                                chaparPartida(client_sockets[i]);
+                        switch (comprobarAccion(client_sockets[i],3)){
+                            case -1:
+                                    sprintf(aviso,"-Err. No es tu turno. \n");
+                                    send(client_sockets[i], aviso, strlen(aviso), 0); 
+                            break;
+                            case 0:
+                                accionRealizada=1;
+                            break;
+                           case 2:
+                                sprintf(aviso,"-Err. No estás en partida. \n");
+                                send(client_sockets[i], aviso, strlen(aviso), 0); 
+                            break;
                             }
                     break;
                     case 9: 
@@ -355,6 +378,9 @@ int main(){
                 parametros[0]='\0';
                 if(accionRealizada==1){
                     actualizarPartida(client_sockets[i]);
+                    if(comprobarVictoria(client_sockets[i])==1){
+                        chaparPartida(client_sockets[i]);
+                    }
                 }
                 //COMPROBAR VICTORIA
 

@@ -507,6 +507,7 @@ int comprobarAccion(int socket, int accion){
     //Ya que el turno al inicar partida es 0 si es par le toca al jugador 1 y si es impar al 2
     printf("[PARTIDA] Indice:%i, ID:%i Jugador 1: %i, Jugador 2: %d\n",indicePartida, partidas[indicePartida].id, partidas[indicePartida].jugadores[0], partidas[indicePartida].jugadores[1]);
     printf("Socket: %i, Jugador: %d\n", socket, jugador);
+    if(indicePartida == -1){return 2;}
     if(partidas[indicePartida].turno%2 == 0){
         if(jugador==2){return -1;}
     }
@@ -732,46 +733,46 @@ int comprobarVictoria(int socket){
     printf("\n\033[1;32mCasillas conquistadas: \033[1;31mjugador 1: %i \033[0m| \033[1;34mjugador 2: %i\033[0m\n",territoriosJugador1, territoriosJugador2);
     
     if(territoriosJugador1 == 25){
-        sprintf(miwebo2, "Gana el jugador 1: ha conquistado todas las casillas.\n");
+        sprintf(miwebo2, "[FIN] Gana el jugador 1: ha conquistado todas las casillas.\n");
         send(partidas[indicePartida].jugadores[0], miwebo2, strlen(miwebo2), 0); 
         send(partidas[indicePartida].jugadores[1], miwebo2, strlen(miwebo2), 0); 
         return 1;
     }
     if(territoriosJugador2 == 25){
-        sprintf(miwebo2,"Gana el jugador 2: ha conquistado todas las casillas.\n");
+        sprintf(miwebo2,"[FIN] Gana el jugador 2: ha conquistado todas las casillas.\n");
         send(partidas[indicePartida].jugadores[0], miwebo2, strlen(miwebo2), 0); 
         send(partidas[indicePartida].jugadores[1], miwebo2, strlen(miwebo2), 0); 
         return 1;
     }
     if(territoriosJugador1 == 0 && territoriosJugador2 == 0){
-        sprintf(miwebo2, "Empate: ambos jugadores se han quedado sin casillas.\n");
+        sprintf(miwebo2, "[FIN] Empate: ambos jugadores se han quedado sin casillas.\n");
         send(partidas[indicePartida].jugadores[0], miwebo2, strlen(miwebo2), 0); 
         send(partidas[indicePartida].jugadores[1], miwebo2, strlen(miwebo2), 0); 
         return 1;
     }
     if(territoriosJugador1 == 0){
-        sprintf(miwebo2,"Gana el jugador 2: el jugador 1 se ha quedado sin casillas.\n");
+        sprintf(miwebo2,"[FIN] Gana el jugador 2: el jugador 1 se ha quedado sin casillas.\n");
         send(partidas[indicePartida].jugadores[0], miwebo2, strlen(miwebo2), 0); 
         send(partidas[indicePartida].jugadores[1], miwebo2, strlen(miwebo2), 0); 
         return 1;
     }
     if(territoriosJugador2 == 0){
-        sprintf(miwebo2,"Gana el jugador 1: el jugador 1 se ha quedado sin casillas.\n");
+        sprintf(miwebo2,"[FIN] Gana el jugador 1: el jugador 1 se ha quedado sin casillas.\n");
         send(partidas[indicePartida].jugadores[0], miwebo2, strlen(miwebo2), 0); 
         send(partidas[indicePartida].jugadores[1], miwebo2, strlen(miwebo2), 0); 
         return 1;
     }
     if(partidas[indicePartida].turno >= MAX_TURNOS){
         if(territoriosJugador1 > territoriosJugador2){
-        sprintf(miwebo2,"Gana el jugador 1 por tener mas territorios.\n");
+        sprintf(miwebo2,"[FIN] Gana el jugador 1 por tener mas territorios.\n");
         send(partidas[indicePartida].jugadores[0], miwebo2, strlen(miwebo2), 0); 
         send(partidas[indicePartida].jugadores[1], miwebo2, strlen(miwebo2), 0); 
         }else if(territoriosJugador2 > territoriosJugador1){
-        sprintf(miwebo2,"Gana el jugador 2 por tener mas territorios.\n");
+        sprintf(miwebo2,"[FIN] Gana el jugador 2 por tener mas territorios.\n");
         send(partidas[indicePartida].jugadores[0], miwebo2, strlen(miwebo2), 0); 
         send(partidas[indicePartida].jugadores[1], miwebo2, strlen(miwebo2), 0); 
         }else{
-        sprintf(miwebo2,"Empate: ambos jugadores tienen el mismo numero de territorios.\n");
+        sprintf(miwebo2,"[FIN] Empate: ambos jugadores tienen el mismo numero de territorios.\n");
         send(partidas[indicePartida].jugadores[0], miwebo2, strlen(miwebo2), 0); 
         send(partidas[indicePartida].jugadores[1], miwebo2, strlen(miwebo2), 0); 
         return 1;
