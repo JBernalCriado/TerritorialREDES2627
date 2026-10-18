@@ -44,16 +44,14 @@ int main(){
     
     //-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-    while (1)
-    {
+    while (1){
         int accionRealizada=0;
         FD_ZERO(&read_fds);
 
         FD_SET(server_socket, &read_fds);
         max_sd = server_socket;
 
-        for (int i = 0; i < MAX_CLIENTS; i++)
-        {
+        for (int i = 0; i < MAX_CLIENTS; i++){
             int sd = client_sockets[i];
             if (sd > 0)
                 FD_SET(sd, &read_fds);
@@ -62,8 +60,7 @@ int main(){
         }
 
         int activity = select(max_sd + 1, &read_fds, NULL, NULL, NULL);
-        if (activity < 0 && errno != EINTR)
-        {
+        if (activity < 0 && errno != EINTR){
             perror("select");
         }
 
@@ -78,13 +75,13 @@ int main(){
             //muerte a los fantasmas
            // registrarCliente(new_socket);
 
+                      
             for (int i = 0; i < MAX_CLIENTS; i++){
                 if (client_sockets[i] == 0){
                     client_sockets[i] = new_socket;
                     break;
                 }
             }
-
 
             /*
             

@@ -22,6 +22,7 @@ struct Partida partidas[MAX_PARTIDAS];
 void iniciarPartidas(){
     for(int i=0 ; i<MAX_PARTIDAS ; i++){
         partidas[i].id = -1;
+        partidas[i].estado = 0;
     }
 }
 
@@ -190,7 +191,7 @@ void listarClientes(){
 @param username nombre del nuevo usuario
 @param password contraseña del nuevo usuario
 @return 1 si se añade correctamente
-        0 si no hay partidas disponibles
+        0 si no huecos
 */
 int agregarUsuario(char *username, char *password){
     for (int i = 0; i < 100; i++){
@@ -211,8 +212,18 @@ int agregarUsuario(char *username, char *password){
         1 si se ha podido añadir
 */
 int agregarUsuarioPartida(int socketjugador){
-    int i=0;
-    for(i ; i<MAX_PARTIDAS ; i++){
+    int i;
+    bool hayPartidaDisponible=false;
+    for(i=0 ; i<MAX_PARTIDAS ; i++){
+        if(partidas[i].id==-1){
+            hayPartidaDisponible=true;
+            continue;
+        }
+    }
+    if(hayPartidaDisponible==false){
+        return 0;
+    }
+    for(i=0 ; i<MAX_PARTIDAS ; i++){
         if(partidas[i].jugadores[0] == socketjugador || partidas[i].jugadores[1]==socketjugador){
             return -1;
         }
@@ -842,7 +853,7 @@ void chaparPartida(int socket){
     partidas[indicePartida].jugadores[0]=0;
     partidas[indicePartida].jugadores[1]=0;
     partidas[indicePartida].turno=0;
-
+    
 }
 
 void establecerSemilla(){

@@ -61,7 +61,7 @@ int main(){
             recv(sock,buffer,sizeof(buffer),0);
             strcpy(buffer, quitarn(buffer));
             if(strncmp(buffer, "[FIN]", 5)==0){
-                printf("Fin de la partida\n");
+                printf("%s\n", buffer);
                 continue;
             }
             if((isdigit(buffer[0])==0)){            
@@ -75,6 +75,9 @@ int main(){
             }
             if(strcmp(buffer, "+Ok. Esperando a otro jugador...")==0){
                 while(1){
+                    if(enPartida==true){
+                        break;
+                    }
                     sleep(1);
                     bytes_received = recv(sock, buffer, sizeof(buffer)-1, 0);
                     if(bytes_received>0){
