@@ -2,7 +2,7 @@
 #define MACROS_H
 
 //Server
-#define SERVER_PORT 9876
+#define SERVER_PORT 2026
 #define SERVER_IP "127.0.0.1"
 #define MAX_CLIENTS 10
 #define MAX_PARTIDAS 4
